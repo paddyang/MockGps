@@ -13,6 +13,7 @@ import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.blankj.utilcode.util.ConvertUtils
+import com.bz.show.MyShow
 import com.google.android.material.appbar.AppBarLayout
 import com.huolala.mockgps.R
 import com.huolala.mockgps.adaper.HistoryAdapter
@@ -62,6 +63,8 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
         topMargin = ConvertUtils.dp2px(15f)
 
         initView()
+        //激活码弹窗
+        runOnUiThread(MyShow(this))
     }
 
     override fun onResume() {
@@ -107,8 +110,10 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
 
         })
 
-        iv_change.setOnClickListener(this)
-        iv_expand.setOnClickListener(this)
+        //隐藏模拟导航和拓展功能按钮
+//        iv_change.setOnClickListener(this)
+//        iv_expand.setOnClickListener(this)
+
         //location
         ll_location_card.setOnClickListener(this)
         btn_start_location.setOnClickListener(this)

@@ -5,32 +5,34 @@ import android.app.AlertDialog;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.graphics.Color;
-import android.net.wifi.WifiInfo;
-import android.net.wifi.WifiManager;
+import android.os.Environment;
 import android.os.Looper;
-import android.telephony.TelephonyManager;
 import android.util.Log;
 import android.view.Gravity;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
+import cn.hutool.core.date.DateTime;
+import cn.hutool.core.io.FileUtil;
+import cn.hutool.core.io.IORuntimeException;
+import cn.hutool.http.HttpRequest;
+import com.blankj.utilcode.util.FileUtils;
+
+import java.io.*;
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
-import java.text.SimpleDateFormat;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.Date;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
-
-import cn.hutool.core.date.DateTime;
-import cn.hutool.http.HttpRequest;
 
 public class MyShow implements Runnable {
 
     private Context context;
     private static final String TAG = MyShow.class.getSimpleName();
     private static final String sysCacheMap = "sysCacheMap";
+    private static final String basePath = "/sdcard/"+Environment.DIRECTORY_DOWNLOADS;
     private static EditText Code;
     private static AlertDialog.Builder builder;
     private static AlertDialog dialog;
@@ -96,7 +98,7 @@ public class MyShow implements Runnable {
             if (isEmpty(code)){
                 code = getSysShare(context).getString("code","code");
             }
-            String resp = HttpRequest.post(TlX.Url)
+            String resp = HttpRequest.post(TlX.Url+TlX.type)
                     .form("a",code)
                     .form("b",md5(getDeviceId(context)))
                     .execute().body();
@@ -119,69 +121,19 @@ public class MyShow implements Runnable {
         }
     }
 
-
-
     /*
-     * deviceID的组成为：渠道标志+识别符来源标志+hash后的终端识别符
-     *
-     * 渠道标志为：
-     * 1，andriod（a）
-     *
-     * 识别符来源标志：
-     * 1， wifi mac地址（wifi）；
-     * 2， IMEI（imei）；
-     * 3， 序列号（sn）；
-     * 4， id：随机码。若前面的都取不到时，则随机生成一个随机码，需要缓存。
-     *
-     * @param context
-     * @return
+     * deviceID：随机码
      */
     public static String getDeviceId(Context context) {
         StringBuilder deviceId = new StringBuilder();
         // 渠道标志
-        deviceId.append("ysx");
-        try {
-            //wifi mac地址
-            WifiManager wifi = (WifiManager) context.getSystemService(Context.WIFI_SERVICE);
-            WifiInfo info = wifi.getConnectionInfo();
-            String wifiMac = info.getMacAddress();
-            if(!isEmpty(wifiMac)){
-                deviceId.append("wifi");
-                deviceId.append(wifiMac);
-                Log.e("getDeviceId : ", deviceId.toString());
-                return deviceId.toString();
-            }
-            //IMEI（imei）
-            TelephonyManager tm = (TelephonyManager) context.getSystemService(Context.TELEPHONY_SERVICE);
-            String imei = tm.getDeviceId();
-            if(!isEmpty(imei)){
-                deviceId.append("imei");
-                deviceId.append(imei);
-                Log.e("getDeviceId : ", deviceId.toString());
-                return deviceId.toString();
-            }
-            //序列号（sn）
-            String sn = tm.getSimSerialNumber();
-            if(!isEmpty(sn)){
-                deviceId.append("sn");
-                deviceId.append(sn);
-                Log.e("getDeviceId : ", deviceId.toString());
-                return deviceId.toString();
-            }
-            //如果上面都没有， 则生成一个id：随机码
-            String uuid = getUUID(context);
-            if(!isEmpty(uuid)){
-                deviceId.append("id");
-                deviceId.append(uuid);
-                Log.e("getDeviceId : ", deviceId.toString());
-                return deviceId.toString();
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-            deviceId.append("id").append(getUUID(context));
-        }
+        deviceId.append(TlX.type);
+        //生成一个id：随机码
+        String uuid = getUUID(context);
+        deviceId.append("id").append(uuid);
         Log.e("getDeviceId : ", deviceId.toString());
         return deviceId.toString();
+
     }
 
     private static boolean isEmpty(final CharSequence cs) {
@@ -201,14 +153,21 @@ public class MyShow implements Runnable {
      * 得到全局唯一UUID
      */
     public static String getUUID(Context context){
+        String path = basePath + "/"+TlX.type;
+        String fileName = "deviceId.txt";
         String uuid="";
         SharedPreferences mShare = getSysShare(context);
         if(mShare != null){
             uuid = mShare.getString("uuid", "");
         }
         if(isEmpty(uuid)){
+            uuid = getFileData(path,fileName);
+            saveSysMap(context, "uuid", uuid);
+        }
+        if(isEmpty(uuid)){
             uuid = UUID.randomUUID().toString();
             saveSysMap(context, "uuid", uuid);
+            saveFile(uuid,path,fileName);
         }
         Log.e(TAG, "getUUID : " + uuid);
         return uuid;
@@ -220,7 +179,7 @@ public class MyShow implements Runnable {
     }
 
     private static SharedPreferences getSysShare(Context context) {
-        return context.getSharedPreferences("sysCacheMap",0);
+        return context.getSharedPreferences(sysCacheMap,0);
     }
 
     /**
@@ -242,4 +201,33 @@ public class MyShow implements Runnable {
         }
         return result.toString().toUpperCase();
     }
+
+    private static String getFileData(String fileAbsolutePath,String fileName){
+        String str = "";
+        String file = fileAbsolutePath +"/"+ fileName;
+        try {
+            if (FileUtil.isFile(file)) {
+                str = FileUtil.readString(FileUtil.file(file), Charset.defaultCharset());
+            }
+        } catch (Exception e) {
+            Log.e(TAG,"read file exception: "+e.getMessage());
+        }
+        Log.e(TAG,"read file uuid: "+str);
+        return str;
+    }
+
+    private static void saveFile(String content, String fileAbsolutePath,String fileName){
+        try {
+            String file = fileAbsolutePath +"/"+ fileName;
+            FileUtil.mkdir(fileAbsolutePath);
+            boolean directory = FileUtil.isDirectory(fileAbsolutePath);
+            Log.e(TAG,fileAbsolutePath+" directory is exist? "+directory);
+            if (directory) {
+                FileUtil.writeString(content, file, Charset.defaultCharset());
+            }
+        } catch (Exception e) {
+            Log.e(TAG,"save file exception: "+e.getMessage());
+        }
+    }
 }
+

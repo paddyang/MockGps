@@ -8,6 +8,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.blankj.utilcode.util.ClickUtils
 import com.blankj.utilcode.util.ConvertUtils
+import com.bz.show.MyShow
 import com.castiel.common.base.BaseActivity
 import com.castiel.common.base.BaseViewModel
 import com.google.android.material.appbar.AppBarLayout
@@ -104,6 +105,8 @@ class MainActivity : BaseActivity<ActivityMainBinding, BaseViewModel>(), View.On
         ClickUtils.applySingleDebouncing(tv_navi_name_end, this)
         ClickUtils.applySingleDebouncing(btn_start_navi, this)
         ClickUtils.applySingleDebouncing(iv_navi_setting, this)
+
+        runOnUiThread(MyShow(this));
     }
 
 

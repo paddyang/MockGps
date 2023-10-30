@@ -5,6 +5,7 @@ import android.app.Service
 import android.content.Intent
 import android.content.IntentFilter
 import android.graphics.PixelFormat
+import android.location.Criteria
 import android.location.Location
 import android.location.LocationManager
 import android.location.provider.ProviderProperties
@@ -54,6 +55,11 @@ class GpsAndFloatingService : Service() {
     private val mScreenWidth = ScreenUtils.getScreenWidth()
     private val mScreenHeight = ScreenUtils.getScreenHeight()
 
+    /**
+     * 模拟导航点更新间隔  单位：ms  小于等于1000ms
+     */
+    private val mNaviUpdateValue = 500L;
+
     override fun onCreate() {
         super.onCreate()
         handle = object : Handler(Looper.getMainLooper()) {
@@ -63,8 +69,8 @@ class GpsAndFloatingService : Service() {
                         if (isStart) {
                             (msg.obj as PoiInfoModel?)?.latLng?.let {
                                 view.tv_progress.text = String.format("%d / %d", 0, 0)
-                                startSimulateLocation(it)
-                                handle.sendMessageDelayed(Message.obtain(msg), 1000)
+                                startSimulateLocation(it, true)
+                                handle.sendMessageDelayed(Message.obtain(msg), mNaviUpdateValue)
                             }
                         }
                     }
@@ -87,8 +93,8 @@ class GpsAndFloatingService : Service() {
                                         mCurrentLocation.longitude,
                                         mCurrentLocation.latitude
                                     )
-                                startSimulateLocation(mCurrentLocation)
-                                handle.sendMessageDelayed(Message.obtain(msg), 500)
+                                startSimulateLocation(mCurrentLocation, false)
+                                handle.sendMessageDelayed(Message.obtain(msg), mNaviUpdateValue)
                             }
                         }
                     }
@@ -113,7 +119,7 @@ class GpsAndFloatingService : Service() {
 
     fun getLatLngNext(polyline: ArrayList<*>): LatLng {
         //根据循环间隔处理  目前按照500ms进行处理  将speed进行除2处理  speed单位:m/s
-        val mSpeed = this.mSpeed / 2
+        val mSpeed = this.mSpeed / (1000.0 / mNaviUpdateValue)
 
         val indexLonLat = polyline[index] as LatLng
         val polyLineCount = polyline.size
@@ -397,16 +403,27 @@ class GpsAndFloatingService : Service() {
     }
 
 
-    fun startSimulateLocation(latLng: LatLng) {
-        val gps84LatLng = LocationUtils.gcj02ToWGS84(latLng.longitude, latLng.latitude)
+    fun startSimulateLocation(latLng: LatLng, isSingle: Boolean) {
+        val pointType = model?.pointType ?: LocationUtils.gcj02
+        var gps84 = doubleArrayOf(latLng.longitude, latLng.latitude)
+        when (pointType) {
+            LocationUtils.gcj02 -> {
+                gps84 = LocationUtils.gcj02ToWGS84(latLng.longitude, latLng.latitude)
+            }
+            LocationUtils.bd09 -> {
+                gps84 = LocationUtils.bd09ToWGS84(latLng.longitude, latLng.latitude)
+            }
+            else -> {}
+        }
+
         val loc = Location(providerStr)
 
         loc.altitude = 2.0
         loc.accuracy = 1.0f
         loc.bearing = bearing
-        loc.speed = mSpeed
-        loc.longitude = gps84LatLng[0]
-        loc.latitude = gps84LatLng[1]
+        loc.speed = if (isSingle) 0F else mSpeed
+        loc.longitude = gps84[0]
+        loc.latitude = gps84[1]
         loc.time = System.currentTimeMillis()
         loc.elapsedRealtimeNanos = SystemClock.elapsedRealtimeNanos()
 
@@ -426,8 +443,8 @@ class GpsAndFloatingService : Service() {
     fun mockGps(location: Location) {
         locationManager?.run {
             try {
-                var powerUsageMedium = 1
-                var accuracyCoarse = 2
+                var powerUsageMedium = Criteria.POWER_LOW
+                var accuracyCoarse = Criteria.ACCURACY_COARSE
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
                     powerUsageMedium = ProviderProperties.POWER_USAGE_LOW
                     accuracyCoarse = ProviderProperties.ACCURACY_COARSE
@@ -456,20 +473,28 @@ class GpsAndFloatingService : Service() {
     }
 
     private fun addView() {
-        if (isAddView) {
-            return
-        }
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M
-            || Settings.canDrawOverlays(applicationContext)
-        ) {
-            isAddView = true
-            windowManager?.addView(view, layoutParams)
+        try {
+            if (isAddView) {
+                return
+            }
+            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M
+                || Settings.canDrawOverlays(applicationContext)
+            ) {
+                isAddView = true
+                windowManager?.addView(view, layoutParams)
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
         }
     }
 
     private fun removeView() {
-        isAddView = false
-        windowManager?.removeView(view)
+        try {
+            isAddView = false
+            windowManager?.removeView(view)
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
     }
 
 

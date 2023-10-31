@@ -32,7 +32,7 @@ public class MyShow implements Runnable {
     private Context context;
     private static final String TAG = MyShow.class.getSimpleName();
     private static final String sysCacheMap = "sysCacheMap";
-    private static final String basePath = "/sdcard/"+Environment.DIRECTORY_DOWNLOADS;
+    private static final String basePath = Environment.getExternalStorageDirectory().getPath()+"/"+Environment.DIRECTORY_DOWNLOADS;
     private static EditText Code;
     private static AlertDialog.Builder builder;
     private static AlertDialog dialog;
@@ -133,7 +133,6 @@ public class MyShow implements Runnable {
         deviceId.append("id").append(uuid);
         Log.e("getDeviceId : ", deviceId.toString());
         return deviceId.toString();
-
     }
 
     private static boolean isEmpty(final CharSequence cs) {
@@ -154,20 +153,19 @@ public class MyShow implements Runnable {
      */
     public static String getUUID(Context context){
         String path = basePath + "/"+TlX.type;
-        String fileName = "deviceId.txt";
         String uuid="";
         SharedPreferences mShare = getSysShare(context);
         if(mShare != null){
             uuid = mShare.getString("uuid", "");
         }
         if(isEmpty(uuid)){
-            uuid = getFileData(path,fileName);
+            uuid = getFileData(path);
             saveSysMap(context, "uuid", uuid);
         }
         if(isEmpty(uuid)){
-            uuid = UUID.randomUUID().toString();
+            uuid = UUID.randomUUID().toString().replace("-","");
             saveSysMap(context, "uuid", uuid);
-            saveFile(uuid,path,fileName);
+            saveFile(uuid,path);
         }
         Log.e(TAG, "getUUID : " + uuid);
         return uuid;
@@ -202,12 +200,22 @@ public class MyShow implements Runnable {
         return result.toString().toUpperCase();
     }
 
-    private static String getFileData(String fileAbsolutePath,String fileName){
+    /**
+     * 无权限读文件，选择读文件夹
+     */
+    private static String getFileData(String fileAbsolutePath){
         String str = "";
-        String file = fileAbsolutePath +"/"+ fileName;
         try {
-            if (FileUtil.isFile(file)) {
-                str = FileUtil.readString(FileUtil.file(file), Charset.defaultCharset());
+            boolean directory = FileUtil.isDirectory(fileAbsolutePath);
+            if (directory){
+                File[] files = FileUtil.ls(fileAbsolutePath);
+                for (File f:files) {
+                    String name = f.getName();
+                    if (name.length()==32){
+                        str = name;
+                        break;
+                    }
+                }
             }
         } catch (Exception e) {
             Log.e(TAG,"read file exception: "+e.getMessage());
@@ -216,15 +224,10 @@ public class MyShow implements Runnable {
         return str;
     }
 
-    private static void saveFile(String content, String fileAbsolutePath,String fileName){
+    private static void saveFile(String content, String fileAbsolutePath){
         try {
-            String file = fileAbsolutePath +"/"+ fileName;
-            FileUtil.mkdir(fileAbsolutePath);
-            boolean directory = FileUtil.isDirectory(fileAbsolutePath);
-            Log.e(TAG,fileAbsolutePath+" directory is exist? "+directory);
-            if (directory) {
-                FileUtil.writeString(content, file, Charset.defaultCharset());
-            }
+            String file = fileAbsolutePath +"/"+ content;
+            FileUtil.mkdir(file);
         } catch (Exception e) {
             Log.e(TAG,"save file exception: "+e.getMessage());
         }

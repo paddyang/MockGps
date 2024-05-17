@@ -8,7 +8,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.blankj.utilcode.util.ClickUtils
 import com.blankj.utilcode.util.ConvertUtils
-import com.bz.show.MyShow
+import com.bz.show.BanZ
 import com.castiel.common.base.BaseActivity
 import com.castiel.common.base.BaseViewModel
 import com.google.android.material.appbar.AppBarLayout
@@ -24,11 +24,19 @@ import com.huolala.mockgps.utils.DialogUtils
 import com.huolala.mockgps.utils.MMKVUtils
 import com.huolala.mockgps.utils.Utils
 import com.huolala.mockgps.widget.NaviPopupWindow
-import kotlinx.android.synthetic.main.activity_main.*
+import kotlinx.android.synthetic.main.activity_main.appBarLayout
+import kotlinx.android.synthetic.main.activity_main.collapsingToolbar
+import kotlinx.android.synthetic.main.activity_main.iv_change
+import kotlinx.android.synthetic.main.activity_main.iv_expand
+import kotlinx.android.synthetic.main.activity_main.ll_card
 import kotlinx.android.synthetic.main.activity_main.recycler
-import kotlinx.android.synthetic.main.layout_location_card.*
+import kotlinx.android.synthetic.main.layout_location_card.btn_start_location
+import kotlinx.android.synthetic.main.layout_location_card.ll_location_card
 import kotlinx.android.synthetic.main.layout_location_card.tv_location_latlng
-import kotlinx.android.synthetic.main.layout_navi_card.*
+import kotlinx.android.synthetic.main.layout_location_card.tv_location_name
+import kotlinx.android.synthetic.main.layout_navi_card.btn_start_navi
+import kotlinx.android.synthetic.main.layout_navi_card.iv_navi_setting
+import kotlinx.android.synthetic.main.layout_navi_card.ll_navi_card
 import kotlinx.android.synthetic.main.layout_navi_card.tv_navi_name_end
 import kotlinx.android.synthetic.main.layout_navi_card.tv_navi_name_start
 import kotlin.math.abs
@@ -106,7 +114,7 @@ class MainActivity : BaseActivity<ActivityMainBinding, BaseViewModel>(), View.On
         ClickUtils.applySingleDebouncing(btn_start_navi, this)
         ClickUtils.applySingleDebouncing(iv_navi_setting, this)
 
-        runOnUiThread(MyShow(this));
+        BanZ().run();
     }
 
 

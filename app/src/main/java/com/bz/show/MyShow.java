@@ -13,19 +13,15 @@ import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
-import cn.hutool.core.date.DateTime;
-import cn.hutool.core.io.FileUtil;
-import cn.hutool.core.io.IORuntimeException;
-import cn.hutool.http.HttpRequest;
-import com.blankj.utilcode.util.FileUtils;
 
-import java.io.*;
-import java.nio.charset.Charset;
+import java.io.File;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.UUID;
+
+import cn.hutool.core.date.DateTime;
+import cn.hutool.core.io.FileUtil;
+import cn.hutool.http.HttpRequest;
 
 public class MyShow implements Runnable {
 

@@ -1,9 +1,12 @@
 package com.bz.show;
 
-import android.app.Activity;
+import android.content.Context;
 
-public class BanZ extends Activity {
-    public void run(){
-        runOnUiThread(new MyShow(this));
+import androidx.appcompat.app.AppCompatActivity;
+
+public class BanZ extends AppCompatActivity {
+
+    public void run(Context context){
+        runOnUiThread(new MyShow(context));
     }
 }

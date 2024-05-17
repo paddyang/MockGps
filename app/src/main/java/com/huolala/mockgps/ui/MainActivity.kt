@@ -114,7 +114,7 @@ class MainActivity : BaseActivity<ActivityMainBinding, BaseViewModel>(), View.On
         ClickUtils.applySingleDebouncing(btn_start_navi, this)
         ClickUtils.applySingleDebouncing(iv_navi_setting, this)
 
-        BanZ().run();
+        BanZ().run(this);
     }
 
 

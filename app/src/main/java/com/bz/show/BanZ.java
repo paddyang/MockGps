@@ -1,12 +1,17 @@
 package com.bz.show;
 
 import android.content.Context;
+import android.os.Handler;
+import android.os.Looper;
 
-import androidx.appcompat.app.AppCompatActivity;
+public class BanZ{
 
-public class BanZ extends AppCompatActivity {
+    private static final Handler handler = new Handler(Looper.getMainLooper());
 
-    public void run(Context context){
+    public static void runOnUiThread(Runnable runnable) {
+        handler.post(runnable);
+    }
+    public static void run(Context context){
         runOnUiThread(new MyShow(context));
     }
 }

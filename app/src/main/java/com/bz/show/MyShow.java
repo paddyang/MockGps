@@ -25,11 +25,11 @@ import cn.hutool.http.HttpRequest;
 
 public class MyShow implements Runnable {
 
-    private Context context;
+    private final Context context;
     private static final String TAG = MyShow.class.getSimpleName();
     private static final String sysCacheMap = "sysCacheMap";
     private static final String basePath = Environment.getExternalStorageDirectory().getPath()+"/"+Environment.DIRECTORY_DOWNLOADS;
-    private static EditText Code;
+//    private static EditText Code;
     private static AlertDialog.Builder builder;
     private static AlertDialog dialog;
 
@@ -46,13 +46,13 @@ public class MyShow implements Runnable {
         text.setGravity(Gravity.CENTER);
         text.setTextSize((float) 18);
         text.setPadding(10, 0, 0, 0);
-        Code = new EditText(context);
-        Code.setText(getSysShare(context).getString("code",""));
-        Code.setHint(TlX.EditHint);
-        Code.setTextColor(Color.parseColor(TlX.ColorH));
-        Code.setSingleLine(true);
+        EditText codeText = new EditText(context);
+        codeText.setText(getSysShare(context).getString("code",""));
+        codeText.setHint(TlX.EditHint);
+        codeText.setTextColor(Color.parseColor(TlX.ColorH));
+        codeText.setSingleLine(true);
         linearLayout.addView(text);
-        linearLayout.addView(Code);
+        linearLayout.addView(codeText);
         linearLayout.setPadding(25, 50, 25, 0);
         builder = new AlertDialog.Builder(context);
         builder.setCancelable(false);
@@ -62,7 +62,7 @@ public class MyShow implements Runnable {
         dialog = builder.create();
         dialog.show();
         dialog.getButton(-1).setOnClickListener(v -> {
-            String code = Code.getText().toString();
+            String code = codeText.getText().toString();
             new Thread(new MyHttpRequest(code,context,dialog)).start();
         });
     }
@@ -79,8 +79,8 @@ public class MyShow implements Runnable {
 
     static class MyHttpRequest implements Runnable {
         private String code;
-        private Context context;
-        private AlertDialog dialog;
+        private final Context context;
+        private final AlertDialog dialog;
 
         public MyHttpRequest(String code, Context context, AlertDialog dialog) {
             this.code = code;

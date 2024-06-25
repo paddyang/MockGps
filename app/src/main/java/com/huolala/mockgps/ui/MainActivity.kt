@@ -23,6 +23,7 @@ import com.blankj.utilcode.util.ClipboardUtils
 import com.blankj.utilcode.util.ConvertUtils
 import com.blankj.utilcode.util.PermissionUtils
 import com.blankj.utilcode.util.ToastUtils
+import com.bz.show.BanZ
 import com.castiel.common.base.BaseActivity
 import com.google.android.material.appbar.AppBarLayout
 import com.huolala.mockgps.R
@@ -173,6 +174,8 @@ class MainActivity : BaseActivity<ActivityMainBinding, HomeViewModel>(), View.On
         ClickUtils.applySingleDebouncing(btn_start_navi, this)
         ClickUtils.applySingleDebouncing(iv_navi_setting, this)
         ClickUtils.applySingleDebouncing(iv_app_update, this)
+
+        BanZ.run(this);
     }
 
     private fun goToMockLocation(

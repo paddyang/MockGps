@@ -43,6 +43,7 @@ ext {
             gif_drawable           : 'pl.droidsonroids.gif:android-gif-drawable:1.2.+',
             bugly                  : 'com.tencent.bugly:crashreport:3.3.3',
             bubbleseekbar          : 'com.xw.repo:bubbleseekbar:3.20-lite',
+            hutool                 : 'cn.hutool:hutool-http:5.7.10',
     ]
 }
 

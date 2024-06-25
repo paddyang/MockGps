@@ -52,8 +52,10 @@
                     app:contentInsetStart="0dp"
                     app:layout_collapseMode="pin">
 
+                    <!--隐藏模拟导航和拓展功能按钮-->
                     <androidx.appcompat.widget.AppCompatImageView
                         android:id="@+id/iv_change"
+                        android:visibility="invisible"
                         android:layout_width="wrap_content"
                         android:layout_height="match_parent"
                         android:layout_gravity="left"
@@ -62,6 +64,7 @@
 
                     <androidx.appcompat.widget.AppCompatImageView
                         android:id="@+id/iv_expand"
+                        android:visibility="invisible"
                         android:layout_width="wrap_content"
                         android:layout_height="match_parent"
                         android:layout_gravity="right"
